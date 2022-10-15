@@ -1,0 +1,24 @@
+{
+  "name": "apts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "run": "nodemon src/main.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-ses": "^3.188.0",
+    "ajv-formats": "^3.0.0-rc.0",
+    "dayjs": "^1.11.5",
+    "dotenv": "^16.0.3",
+    "fastify": "^4.8.1",
+    "mongodb": "^4.10.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
