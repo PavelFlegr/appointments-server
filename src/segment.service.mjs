@@ -2,12 +2,14 @@ import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek.js"
 import duration from "dayjs/plugin/duration.js"
 import customParseFormat from "dayjs/plugin/customParseFormat.js"
-import isBetween from "dayjs/plugin/isBetween.js"
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore.js"
+import isSameOrAfter from  "dayjs/plugin/isSameOrAfter.js"
 import utc from "dayjs/plugin/utc.js"
 dayjs.extend(isoWeek)
 dayjs.extend(duration)
 dayjs.extend(customParseFormat)
-dayjs.extend(isBetween)
+dayjs.extend(isSameOrBefore)
+dayjs.extend(isSameOrAfter)
 dayjs.extend(utc)
 
 export class SegmentService {
@@ -70,8 +72,8 @@ export class SegmentService {
 
     hasBreakCollision(breaks, segmentStart, segmentEnd) {
         for (const breakData of breaks) {
-            if(segmentStart.isBetween(breakData.start, breakData.end, 'minute', '[]') ||
-                segmentEnd.isBetween(breakData.start, breakData.end, 'minute', '[]')) {
+            if(!(segmentStart.isBefore(breakData.start, 'minute') && segmentEnd.isSameOrBefore(breakData.start, 'minute') ||
+                segmentStart.isSameOrAfter(breakData.end, 'minute') && segmentEnd.isAfter(breakData.start))) {
                 return true
             }
         }
