@@ -28,7 +28,7 @@ fastify.post('/reservation', {
     async handler (request, reply) {
         const reservation = await reservationService.createReservation(request.body)
         const email = await emailService.sendEmail("Reservation Created", `Your reservation for ${dayjs(reservation.start).format("DD. MM. YYYY HH:mm")} is registered`, reservation.email)
-
+        fastify.log.info(email)
         return true
     },
     schema: {
