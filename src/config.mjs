@@ -7,8 +7,12 @@ export class Config {
         return process.env.DB_NAME ?? 'appointments'
     }
 
-    static get emailAddress() {
-        return process.env.EMAIL_ADDRESS ?? 'pavelflegr@gmail.com'
+    static get fromAddress() {
+        return process.env.FROM_ADDRESS ?? 'pavelflegr@gmail.com'
+    }
+
+    static get replyAddress() {
+        return process.env.REPLY_ADDRESS ?? Config.fromAddress
     }
 
     static get awsAccessId() {

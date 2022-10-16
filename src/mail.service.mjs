@@ -9,24 +9,24 @@ export class MailService {
 
     async sendEmail(subject, text, recipient) {
         const command = new SendEmailCommand({
-                Destination: {
-                    ToAddresses: [recipient]
-                },
-                Message: {
-                    Body: {
-                        Html: {
-                            Charset: "UTF-8",
-                            Data: text
-                        },
-                    },
-                    Subject: {
+            Destination: {
+                ToAddresses: [recipient]
+            },
+            Message: {
+                Body: {
+                    Html: {
                         Charset: "UTF-8",
-                        Data: subject
+                        Data: text
                     },
                 },
-                Source: Config.emailAddress
-            }
-        )
+                Subject: {
+                    Charset: "UTF-8",
+                    Data: subject
+                },
+            },
+            Source: Config.fromAddress,
+            ReplyToAddresses: [Config.replyAddress]
+        })
 
         try {
             return await this.client.send(command)
