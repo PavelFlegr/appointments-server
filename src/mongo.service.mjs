@@ -25,13 +25,25 @@ export class MongoService {
         return await collection.updateOne({id}, {$set: {...data}})
     }
 
-    async remove(type, id) {
-
+    async delete(type, id) {
+        const collection = this.db.collection(type)
+        return await collection.deleteOne({ id })
     }
 
-    async find(type, query = {}) {
+    async deleteWhere(type, query) {
+        if(!query || Object.keys(query).length === 0) {
+            throw Error("empty deletion query is not allowed")
+        }
         const collection = this.db.collection(type)
+        return await collection.deleteMany(query)
+    }
 
-        return await collection.find(query).project({_id: false}).toArray()
+    async find(type, query = {}, sort = { }) {
+        const collection = this.db.collection(type)
+        const options = {
+            sort
+        }
+
+        return await collection.find(query, options).project({_id: false}).toArray()
     }
 }

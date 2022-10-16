@@ -24,6 +24,10 @@ export class SegmentService {
         return this.dbService.get(this.type, id)
     }
 
+    async deleteForAppointment(id) {
+        return this.dbService.deleteWhere(this.type, {appointmentId: id})
+    }
+
     async processAppointment(appointment) {
         const appointmentLength = dayjs.duration(appointment.length).asMinutes()
         const start = dayjs.utc(appointment.start)

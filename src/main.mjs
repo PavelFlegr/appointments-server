@@ -37,9 +37,9 @@ fastify.post('/reservation', {
             type: 'object',
             properties: {
                 segmentId: { type: 'string', format: 'uuid'},
-                firstName: { type: 'string'},
-                lastName: { type: 'string'},
-                email: {type: 'string', format: 'email'}
+                firstName: { type: 'string', minLength: 1},
+                lastName: { type: 'string', minLength: 1},
+                email: {type: 'string', format: 'email', minLength: 1}
             }
         }
     }
@@ -56,6 +56,11 @@ fastify.get('/appointment', async (request, reply) => {
     return appointmentService.findAppointments()
 })
 
+fastify.delete('/appointment/:appointmentId', async(request, reply) => {
+    await appointmentService.deleteAppointment(request.params.appointmentId)
+    await segmentService.deleteForAppointment(request.params.appointmentId)
+})
+
 fastify.post('/appointment', {
     async handler (request, reply) {
         const appointment = request.body
@@ -69,19 +74,19 @@ fastify.post('/appointment', {
             type: 'object',
             required: ['name', 'volume', 'length', 'start', 'end', 'breaks', 'exclude'],
             properties: {
-                name: { type: 'string' },
+                name: { type: 'string', minLength: 1},
                 volume: {type: 'number', multipleOf: 1},
-                length: {type: 'string', format: 'duration'},
-                start: {type: 'string', format: 'iso-date-time'},
-                end: {type: 'string', format: 'iso-date-time'},
+                length: {type: 'string', format: 'duration', minLength: 1},
+                start: {type: 'string', format: 'iso-date-time', minLength: 1},
+                end: {type: 'string', format: 'iso-date-time', minLength: 1},
                 breaks: {
                     type: 'array',
                     items: {
                         required: ['start', 'end'],
                         type: 'object',
                         properties: {
-                            start:  {type: 'string', format: 'iso-time'},
-                            end:  {type: 'string', format: 'iso-time'},
+                            start:  {type: 'string', format: 'iso-time', minLength: 1},
+                            end:  {type: 'string', format: 'iso-time', minLength: 1},
                         }
                     }
                 },
