@@ -40,7 +40,7 @@ export class SegmentService {
         }))
         const excludeDays = new Set(appointment.exclude)
 
-        for(let day = 0; day < totalDays; day++) {
+        for(let day = 0; day <= totalDays; day++) {
             const dayOfWeek = start.add(day, 'day').isoWeekday()
             if(excludeDays.has(dayOfWeek)) {
                 continue
