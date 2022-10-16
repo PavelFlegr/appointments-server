@@ -46,4 +46,10 @@ export class MongoService {
 
         return await collection.find(query, options).project({_id: false}).toArray()
     }
+
+    async findOne(type, query) {
+        const collection = this.db.collection(type)
+
+        return await collection.findOne(query, {projection: {_id: false}})
+    }
 }

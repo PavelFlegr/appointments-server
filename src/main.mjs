@@ -8,6 +8,8 @@ import {ReservationService} from "./reservation.service.mjs";
 import {MailService} from "./mail.service.mjs";
 import dayjs from "dayjs";
 import * as dotenv from 'dotenv'
+import {LoginService} from "./login.service.mjs";
+import fastifyJwt from "@fastify/jwt";
 
 dotenv.config()
 
@@ -18,11 +20,24 @@ const fastify = Fastify({
     },
 })
 
+fastify.register(fastifyJwt, {
+    secret: Config.jwtSecret
+})
+
+fastify.decorate("authenticate", async function(request, reply) {
+    try {
+        await request.jwtVerify()
+    } catch (err) {
+        reply.send(err)
+    }
+})
+
 const dbService = new MongoService(Config.mongoUri, Config.dbName)
 const appointmentService = new AppointmentService(dbService)
 const segmentService = new SegmentService(dbService)
 const reservationService = new ReservationService(dbService, segmentService)
 const emailService = new MailService()
+const loginService = new LoginService(dbService)
 
 fastify.delete('/reservation/:reservationId', async(request, reply) => {
     const {reservationId} = request.params
@@ -36,6 +51,24 @@ fastify.delete('/reservation/:reservationId', async(request, reply) => {
     }
 
     return false
+})
+
+fastify.post('/register', {
+    async handler (request, reply) {
+        return await loginService.register(request.body)
+    }
+})
+
+fastify.post('/login', {
+    async handler (request, reply) {
+        const user = await loginService.login(request.body)
+        if(user) {
+            const token = fastify.jwt.sign(user)
+            return {token}
+        }
+
+        return false
+    }
 })
 
 fastify.post('/reservation', {
@@ -67,19 +100,24 @@ fastify.get('/segment/:appointmentId', async(request, reply) => {
     return {segments, appointment: appointment.name}
 })
 
-fastify.get('/appointment', async (request, reply) => {
-    return appointmentService.findAppointments()
-})
+fastify.get('/appointment', {
+    onRequest: [fastify.authenticate],
+    async handler (request, reply) {
+        return appointmentService.findAppointments(request.user)
+}})
 
-fastify.delete('/appointment/:appointmentId', async(request, reply) => {
-    await appointmentService.deleteAppointment(request.params.appointmentId)
-    await segmentService.deleteForAppointment(request.params.appointmentId)
-})
+fastify.delete('/appointment/:appointmentId', {
+    onRequest: [fastify.authenticate],
+    async handler(request, reply) {
+        await appointmentService.deleteAppointment(request.params.appointmentId, request.user)
+        await segmentService.deleteForAppointment(request.params.appointmentId, request.user)
+}})
 
 fastify.post('/appointment', {
+    onRequest: [fastify.authenticate],
     async handler (request, reply) {
         const appointment = request.body
-        await appointmentService.createAppointment(appointment)
+        await appointmentService.createAppointment(appointment, request.user)
 
         segmentService.processAppointment(appointment)
         return appointment

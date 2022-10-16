@@ -15,19 +15,20 @@ export class AppointmentService {
         return this.dbService.get(this.type, id)
     }
 
-    async createAppointment(appointment) {
+    async createAppointment(appointment, user) {
         appointment.start = dayjs(appointment.start).toDate()
         appointment.end = dayjs(appointment.end).toDate()
+        appointment.userId = user.id
         this.dbService.create(this.type, appointment)
 
         return appointment
     }
 
-    async findAppointments() {
-        return this.dbService.find(this.type, {}, {$natural: -1})
+    async findAppointments(user) {
+        return this.dbService.find(this.type, {userId: user.id}, {$natural: -1})
     }
 
-    async deleteAppointment(id) {
-        return this.dbService.delete(this.type, id)
+    async deleteAppointment(id, user) {
+        return this.dbService.deleteWhere(this.type, {id, userId: user.id})
     }
 }

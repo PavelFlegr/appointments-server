@@ -22,4 +22,8 @@ export class Config {
     static get appHost() {
         return process.env.APP_HOST ?? 'http://localhost:8080'
     }
+
+    static get jwtSecret() {
+        return process.env.JWT_SECRET ?? 'changeme'
+    }
 }

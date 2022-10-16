@@ -11,10 +11,13 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-ses": "^3.188.0",
+    "@fastify/jwt": "^6.3.2",
     "ajv-formats": "^3.0.0-rc.0",
+    "bcrypt": "^5.1.0",
     "dayjs": "^1.11.5",
     "dotenv": "^16.0.3",
     "fastify": "^4.8.1",
+    "jsonwebtoken": "^8.5.1",
     "mongodb": "^4.10.0",
     "uuid": "^9.0.0"
   },
