@@ -10,6 +10,9 @@ import dayjs from "dayjs";
 import * as dotenv from 'dotenv'
 import {LoginService} from "./login.service.mjs";
 import fastifyJwt from "@fastify/jwt";
+import timezone from "dayjs/plugin/timezone.js"
+
+dayjs.extend(timezone)
 
 dotenv.config()
 
@@ -74,20 +77,22 @@ fastify.post('/login', {
 fastify.post('/reservation', {
     async handler (request, reply) {
         const reservation = await reservationService.createReservation(request.body)
+        const time = dayjs.tz(reservation.start, reservation.timezone).format("DD. MM. YYYY HH:mm")
         const email = await emailService.sendEmail("Reservation Created",
-            `Your reservation for ${dayjs(reservation.start).format("DD. MM. YYYY HH:mm")} is registered. You can cancel it by clicking <a href="${Config.appHost}/cancel/${reservation.id}">here</a>`, reservation.email)
+            `Your reservation for ${time} is registered. You can cancel it by clicking <a href="${Config.appHost}/cancel/${reservation.id}">here</a>`, reservation.email)
         fastify.log.info(email)
         return true
     },
     schema: {
         body: {
-            required: ['segmentId', 'firstName', 'lastName', 'email'],
+            required: ['segmentId', 'firstName', 'lastName', 'email', 'timezone'],
             type: 'object',
             properties: {
                 segmentId: { type: 'string', format: 'uuid'},
                 firstName: { type: 'string', minLength: 1},
                 lastName: { type: 'string', minLength: 1},
-                email: {type: 'string', format: 'email', minLength: 1}
+                email: {type: 'string', format: 'email', minLength: 1},
+                timezone: {type: 'string'}
             }
         }
     }
