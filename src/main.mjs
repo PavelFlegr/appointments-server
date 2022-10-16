@@ -77,7 +77,7 @@ fastify.post('/login', {
 fastify.post('/reservation', {
     async handler (request, reply) {
         const reservation = await reservationService.createReservation(request.body)
-        const time = dayjs.tz(reservation.start, reservation.timezone).format("DD. MM. YYYY HH:mm")
+        const time = dayjs(reservation.start).tz(reservation.timezone).format("DD. MM. YYYY HH:mm")
         const email = await emailService.sendEmail("Reservation Created",
             `Your reservation for ${time} is registered. You can cancel it by clicking <a href="${Config.appHost}/cancel/${reservation.id}">here</a>`, reservation.email)
         fastify.log.info(email)
