@@ -8,12 +8,15 @@ export class ReservationService {
         this.segmentService = segmentService
     }
 
+    async getReservation(id) {
+        return this.dbService.get(this.type, id)
+    }
+
     async createReservation(reservation) {
         const segment = await this.segmentService.getSegment(reservation.segmentId)
         if (segment.volume === 0) {
             throw new Error("no empty spots")
         }
-        delete reservation.segmentId
         reservation.appointmentId = segment.appointmentId
         reservation.start = segment.start
         reservation.end = segment.end
@@ -23,7 +26,7 @@ export class ReservationService {
         return reservation
     }
 
-    async findReservation() {
-        return this.dbService.find(this.type)
+    async deleteReservation(id) {
+        return this.dbService.delete(this.type, id)
     }
 }

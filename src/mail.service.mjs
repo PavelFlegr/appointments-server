@@ -14,7 +14,7 @@ export class MailService {
                 },
                 Message: {
                     Body: {
-                        Text: {
+                        Html: {
                             Charset: "UTF-8",
                             Data: text
                         },

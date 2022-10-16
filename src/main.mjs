@@ -24,10 +24,25 @@ const segmentService = new SegmentService(dbService)
 const reservationService = new ReservationService(dbService, segmentService)
 const emailService = new MailService()
 
+fastify.delete('/reservation/:reservationId', async(request, reply) => {
+    const {reservationId} = request.params
+    const reservation = await reservationService.getReservation(reservationId)
+    if(reservation) {
+        const segment = await segmentService.getSegment(reservation.segmentId)
+        await reservationService.deleteReservation(reservationId)
+        await segmentService.updateVolume(segment.id, segment.volume + 1)
+
+        return true
+    }
+
+    return false
+})
+
 fastify.post('/reservation', {
     async handler (request, reply) {
         const reservation = await reservationService.createReservation(request.body)
-        const email = await emailService.sendEmail("Reservation Created", `Your reservation for ${dayjs(reservation.start).format("DD. MM. YYYY HH:mm")} is registered`, reservation.email)
+        const email = await emailService.sendEmail("Reservation Created",
+            `Your reservation for ${dayjs(reservation.start).format("DD. MM. YYYY HH:mm")} is registered. You can cancel it by clicking <a href="${Config.appHost}/cancel/${reservation.id}">here</a>`, reservation.email)
         fastify.log.info(email)
         return true
     },

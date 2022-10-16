@@ -18,4 +18,8 @@ export class Config {
     static get awsAccessKey() {
         return process.env.AWS_ACCESS_KEY
     }
+
+    static get appHost() {
+        return process.env.APP_HOST ?? 'http://localhost:8080'
+    }
 }
