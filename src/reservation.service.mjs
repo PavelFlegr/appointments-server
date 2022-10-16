@@ -29,4 +29,8 @@ export class ReservationService {
     async deleteReservation(id) {
         return this.dbService.delete(this.type, id)
     }
+
+    async findReservations(appointmentId) {
+        return this.dbService.find(this.type, {appointmentId}, {}, {firstName: 1, lastName: 1, email: 1, start: 1, end: 1})
+    }
 }

@@ -38,13 +38,13 @@ export class MongoService {
         return await collection.deleteMany(query)
     }
 
-    async find(type, query = {}, sort = { }) {
+    async find(type, query = {}, sort = { }, project = {}) {
         const collection = this.db.collection(type)
         const options = {
             sort
         }
 
-        return await collection.find(query, options).project({_id: false}).toArray()
+        return await collection.find(query, options).project({...project, _id: false}).toArray()
     }
 
     async findOne(type, query) {

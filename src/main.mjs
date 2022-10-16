@@ -106,6 +106,18 @@ fastify.get('/appointment', {
         return appointmentService.findAppointments(request.user)
 }})
 
+fastify.get('/appointment/:appointmentId/reservations', {
+    onRequest: [fastify.authenticate],
+    async handler(request, reply) {
+        const {appointmentId} = request.params
+        const appointment = await appointmentService.getAppointment(appointmentId, request.user)
+        if(!appointment) {
+            throw new Error("appointment does not exist or the user doesn't have access")
+        }
+
+        return reservationService.findReservations(appointmentId)
+    }})
+
 fastify.delete('/appointment/:appointmentId', {
     onRequest: [fastify.authenticate],
     async handler(request, reply) {
