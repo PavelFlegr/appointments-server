@@ -31,6 +31,6 @@ export class ReservationService {
     }
 
     async findReservations(appointmentId) {
-        return this.dbService.find(this.type, {appointmentId}, {}, {firstName: 1, lastName: 1, email: 1, start: 1, end: 1})
+        return this.dbService.find(this.type, {appointmentId}, {}, {cancelUrl: "$id", firstName: 1, lastName: 1, email: 1, start: 1, end: 1})
     }
 }

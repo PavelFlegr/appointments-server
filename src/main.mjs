@@ -59,6 +59,17 @@ fastify.delete('/reservation/:reservationId', async(request, reply) => {
 fastify.post('/register', {
     async handler (request, reply) {
         return await loginService.register(request.body)
+    },
+    schema: {
+        body: {
+            required: ['email', 'password', 'verifyPassword'],
+            type: 'object',
+            properties: {
+                password: { type: 'string', minLength: 1},
+                email: {type: 'string', format: 'email', minLength: 1},
+                verifyPassword: { type: 'string', minLength: 1 }
+            }
+        }
     }
 })
 
@@ -71,7 +82,18 @@ fastify.post('/login', {
         }
 
         return false
+    },
+    schema: {
+        body: {
+            required: ['email', 'password'],
+            type: 'object',
+            properties: {
+                password: { type: 'string', minLength: 1},
+                email: {type: 'string', format: 'email', minLength: 1},
+            }
+        }
     }
+
 })
 
 fastify.post('/reservation', {
@@ -99,7 +121,7 @@ fastify.post('/reservation', {
 })
 
 fastify.get('/segment/:appointmentId', async(request, reply) => {
-    const segments = await segmentService.findSegments(request.params.appointmentId)
+    const segments = await segmentService.findAvailableSegments(request.params.appointmentId)
     const appointment = await appointmentService.getAppointment(request.params.appointmentId)
 
     return {segments, appointment: appointment.name}
@@ -108,7 +130,17 @@ fastify.get('/segment/:appointmentId', async(request, reply) => {
 fastify.get('/appointment', {
     onRequest: [fastify.authenticate],
     async handler (request, reply) {
-        return appointmentService.findAppointments(request.user)
+        const appointments = await appointmentService.findAppointments(request.user)
+
+        const wait = appointments.map(async appointment => {
+            appointment.reserved = await reservationService.findReservations(appointment.id).then(reservations => reservations.length)
+            const segmentCount = await segmentService.findSegments(appointment.id).then(segments => segments.length)
+            appointment.capacity = segmentCount * appointment.volume
+        })
+
+        await Promise.all(wait)
+
+        return appointments
 }})
 
 fastify.get('/appointment/:appointmentId/reservations', {
@@ -136,7 +168,7 @@ fastify.post('/appointment', {
         const appointment = request.body
         await appointmentService.createAppointment(appointment, request.user)
 
-        segmentService.processAppointment(appointment)
+        await segmentService.processAppointment(appointment)
         return appointment
     },
     schema: {

@@ -91,7 +91,11 @@ export class SegmentService {
         return segment
     }
 
-    async findSegments(appointmentId) {
+    async findAvailableSegments(appointmentId) {
         return this.dbService.find(this.type, {appointmentId, volume: {$ne: 0}, start: {$gte: dayjs().toDate()}})
+    }
+
+    async findSegments(appointmentId) {
+        return this.dbService.find(this.type, {appointmentId})
     }
 }
