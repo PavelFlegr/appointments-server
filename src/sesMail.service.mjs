@@ -7,7 +7,7 @@ export class SesMailService {
         this.client = new SESClient({region: "eu-central-1", credentials: {accessKeyId: Config.awsAccessId, secretAccessKey: Config.awsAccessKey}})
     }
 
-    async sendEmail(subject, text, recipient) {
+    async sendEmail(subject, text, recipient, replyTo) {
         const command = new SendEmailCommand({
             Destination: {
                 ToAddresses: [recipient]
@@ -25,7 +25,7 @@ export class SesMailService {
                 },
             },
             Source: Config.fromAddress,
-            ReplyToAddresses: [Config.replyAddress]
+            ReplyToAddresses: [replyTo]
         })
 
         try {

@@ -1,6 +1,6 @@
 import {compare, genSalt, hash} from "bcrypt";
 
-export class LoginService {
+export class UserService {
     type='user'
     dbService
     constructor(dbService) {
@@ -27,5 +27,9 @@ export class LoginService {
         } else {
             return false
         }
+    }
+
+    async getUser(id) {
+        return this.dbService.get(this.type, id)
     }
 }

@@ -15,13 +15,13 @@ export class SmtpMailService {
         });
     }
 
-    async sendEmail(subject, text, recipient) {
+    async sendEmail(subject, text, recipient, replyTo) {
         const message = {
             from: Config.fromAddress,
             to: recipient,
             subject: subject,
             html: text,
-
+            replyTo: replyTo,
         };
 
         await this.transport.sendMail(message).catch(e => console.error(e))

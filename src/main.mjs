@@ -7,7 +7,7 @@ import addFormats from "ajv-formats"
 import {ReservationService} from "./reservation.service.mjs";
 import dayjs from "dayjs";
 import * as dotenv from 'dotenv'
-import {LoginService} from "./login.service.mjs";
+import {UserService} from "./user.service.mjs";
 import fastifyJwt from "@fastify/jwt";
 import timezone from "dayjs/plugin/timezone.js"
 import {SmtpMailService} from "./smtpMail.service.mjs";
@@ -40,7 +40,7 @@ const appointmentService = new AppointmentService(dbService)
 const segmentService = new SegmentService(dbService)
 const reservationService = new ReservationService(dbService, segmentService)
 const emailService = new SmtpMailService()
-const loginService = new LoginService(dbService)
+const userService = new UserService(dbService)
 
 fastify.delete('/reservation/:reservationId', async(request) => {
     const {reservationId} = request.params
@@ -58,7 +58,7 @@ fastify.delete('/reservation/:reservationId', async(request) => {
 
 fastify.post('/register', {
     async handler (request) {
-        return await loginService.register(request.body)
+        return await userService.register(request.body)
     },
     schema: {
         body: {
@@ -75,7 +75,7 @@ fastify.post('/register', {
 
 fastify.post('/login', {
     async handler (request) {
-        const user = await loginService.login(request.body)
+        const user = await userService.login(request.body)
         if(user) {
             const token = fastify.jwt.sign(user)
             return {token}
@@ -98,10 +98,14 @@ fastify.post('/login', {
 
 fastify.post('/reservation', {
     async handler (request) {
+        // TODO: use aggregation
         const reservation = await reservationService.createReservation(request.body)
+        const appointment = await appointmentService.getAppointment(reservation.appointmentId)
+        const appointmentOwner = await userService.getUser(appointment.userId)
         const time = dayjs(reservation.start).tz(reservation.timezone).format("DD. MM. YYYY HH:mm")
-        await emailService.sendEmail("Reservation Created",
-            `Your reservation for ${time} is registered. You can cancel it by clicking <a href="${Config.appHost}/cancel/${reservation.id}">here</a>`, reservation.email)
+        emailService.sendEmail("Reservation Created",
+            `Your reservation for ${time} is registered. You can cancel it by clicking <a href="${Config.appHost}/cancel/${reservation.id}">here</a>`, reservation.email, appointmentOwner.email)
+            .catch(e => console.error(`sending email failed: ${JSON.stringify(e)}`))
 
         return true
     },
