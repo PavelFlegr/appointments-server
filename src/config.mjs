@@ -8,7 +8,7 @@ export class Config {
     }
 
     static get fromAddress() {
-        return process.env.FROM_ADDRESS ?? 'pavelflegr@gmail.com'
+        return process.env.FROM_ADDRESS
     }
 
     static get replyAddress() {
@@ -29,5 +29,21 @@ export class Config {
 
     static get jwtSecret() {
         return process.env.JWT_SECRET ?? 'changeme'
+    }
+
+    static get smtpHost() {
+        return process.env.SMTP_HOST
+    }
+
+    static get smtpUsername() {
+        return process.env.SMTP_USERNAME ?? Config.fromAddress
+    }
+
+    static get smtpPassword() {
+        return process.env.SMTP_PASSWORD
+    }
+
+    static get smtpPort() {
+        return process.env.SMTP_PORT ?? 465
     }
 }

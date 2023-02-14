@@ -8,12 +8,13 @@ export class LoginService {
     }
 
     async register(user) {
+        const { password, verifyPassword, email } = user
         const salt = await genSalt()
-        if(user.password !== user.verifyPassword) {
+        if(password !== verifyPassword) {
             throw new Error("passwords do not match")
         }
-        user.password = await hash(user.password, salt)
-        this.dbService.create(this.type, user)
+        const passwordHash = await hash(password, salt)
+        this.dbService.create(this.type, {password: passwordHash, email})
 
         return true
     }

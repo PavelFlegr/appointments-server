@@ -1,7 +1,7 @@
 import {SESClient, SendEmailCommand} from "@aws-sdk/client-ses";
 import {Config} from "./config.mjs";
 
-export class MailService {
+export class SesMailService {
     client
     constructor() {
         this.client = new SESClient({region: "eu-central-1", credentials: {accessKeyId: Config.awsAccessId, secretAccessKey: Config.awsAccessKey}})

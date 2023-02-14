@@ -5,12 +5,12 @@ import {AppointmentService} from "./appointment.service.mjs";
 import {SegmentService} from "./segment.service.mjs";
 import addFormats from "ajv-formats"
 import {ReservationService} from "./reservation.service.mjs";
-import {MailService} from "./mail.service.mjs";
 import dayjs from "dayjs";
 import * as dotenv from 'dotenv'
 import {LoginService} from "./login.service.mjs";
 import fastifyJwt from "@fastify/jwt";
 import timezone from "dayjs/plugin/timezone.js"
+import {SmtpMailService} from "./smtpMail.service.mjs";
 
 dayjs.extend(timezone)
 
@@ -39,10 +39,10 @@ const dbService = new MongoService(Config.mongoUri, Config.dbName)
 const appointmentService = new AppointmentService(dbService)
 const segmentService = new SegmentService(dbService)
 const reservationService = new ReservationService(dbService, segmentService)
-const emailService = new MailService()
+const emailService = new SmtpMailService()
 const loginService = new LoginService(dbService)
 
-fastify.delete('/reservation/:reservationId', async(request, reply) => {
+fastify.delete('/reservation/:reservationId', async(request) => {
     const {reservationId} = request.params
     const reservation = await reservationService.getReservation(reservationId)
     if(reservation) {
@@ -57,7 +57,7 @@ fastify.delete('/reservation/:reservationId', async(request, reply) => {
 })
 
 fastify.post('/register', {
-    async handler (request, reply) {
+    async handler (request) {
         return await loginService.register(request.body)
     },
     schema: {
@@ -74,7 +74,7 @@ fastify.post('/register', {
 })
 
 fastify.post('/login', {
-    async handler (request, reply) {
+    async handler (request) {
         const user = await loginService.login(request.body)
         if(user) {
             const token = fastify.jwt.sign(user)
@@ -97,12 +97,12 @@ fastify.post('/login', {
 })
 
 fastify.post('/reservation', {
-    async handler (request, reply) {
+    async handler (request) {
         const reservation = await reservationService.createReservation(request.body)
         const time = dayjs(reservation.start).tz(reservation.timezone).format("DD. MM. YYYY HH:mm")
-        const email = await emailService.sendEmail("Reservation Created",
+        await emailService.sendEmail("Reservation Created",
             `Your reservation for ${time} is registered. You can cancel it by clicking <a href="${Config.appHost}/cancel/${reservation.id}">here</a>`, reservation.email)
-        fastify.log.info(email)
+
         return true
     },
     schema: {
@@ -120,7 +120,7 @@ fastify.post('/reservation', {
     }
 })
 
-fastify.get('/segment/:appointmentId', async(request, reply) => {
+fastify.get('/segment/:appointmentId', async(request) => {
     const segments = await segmentService.findAvailableSegments(request.params.appointmentId)
     const appointment = await appointmentService.getAppointment(request.params.appointmentId)
 
@@ -129,7 +129,7 @@ fastify.get('/segment/:appointmentId', async(request, reply) => {
 
 fastify.get('/appointment', {
     onRequest: [fastify.authenticate],
-    async handler (request, reply) {
+    async handler (request) {
         const appointments = await appointmentService.findAppointments(request.user)
 
         const wait = appointments.map(async appointment => {
@@ -145,7 +145,7 @@ fastify.get('/appointment', {
 
 fastify.get('/appointment/:appointmentId/reservations', {
     onRequest: [fastify.authenticate],
-    async handler(request, reply) {
+    async handler(request) {
         const {appointmentId} = request.params
         const appointment = await appointmentService.getAppointment(appointmentId, request.user)
         if(!appointment) {
@@ -157,14 +157,14 @@ fastify.get('/appointment/:appointmentId/reservations', {
 
 fastify.delete('/appointment/:appointmentId', {
     onRequest: [fastify.authenticate],
-    async handler(request, reply) {
+    async handler(request) {
         await appointmentService.deleteAppointment(request.params.appointmentId, request.user)
         await segmentService.deleteForAppointment(request.params.appointmentId, request.user)
 }})
 
 fastify.post('/appointment', {
     onRequest: [fastify.authenticate],
-    async handler (request, reply) {
+    async handler (request) {
         const appointment = request.body
         await appointmentService.createAppointment(appointment, request.user)
 
