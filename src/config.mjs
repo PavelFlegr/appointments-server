@@ -44,6 +44,6 @@ export class Config {
     }
 
     static get smtpPort() {
-        return process.env.SMTP_PORT ?? 465
+        return process.env.SMTP_PORT ?? 587
     }
 }
