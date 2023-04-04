@@ -104,7 +104,7 @@ fastify.post('/reservation', {
         const appointmentOwner = await userService.getUser(appointment.userId)
         const time = dayjs(reservation.start).tz(reservation.timezone).format("DD. MM. YYYY HH:mm")
         emailService.sendEmail("Reservation Created",
-            `Your reservation for ${time} is registered. You can cancel it by clicking <a href="${Config.appHost}/cancel/${reservation.id}">here</a>`, reservation.email, appointmentOwner.email)
+            `Your reservation for ${time} is registered. You can cancel it by clicking <a href="${Config.appHost}/cancel/${reservation.id}">here</a><div>${appointment.instructions}</div>`, reservation.email, appointmentOwner.email)
             .catch(e => console.error(`sending email failed: ${JSON.stringify(e)}`))
 
         return true
@@ -185,6 +185,7 @@ fastify.post('/appointment', {
                 length: {type: 'string', format: 'duration', minLength: 1},
                 start: {type: 'string', format: 'iso-date-time', minLength: 1},
                 end: {type: 'string', format: 'iso-date-time', minLength: 1},
+                instructions: {type: 'string', default: ''},
                 breaks: {
                     type: 'array',
                     items: {
