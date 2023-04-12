@@ -1,8 +1,8 @@
-import {Config} from "./config.mjs";
-import nodemailer from "nodemailer";
+import {Config} from "./config.js";
+import nodemailer, { Transporter } from 'nodemailer';
 
 export class SmtpMailService {
-    transport
+    transport: Transporter
     constructor() {
         this.transport = nodemailer.createTransport({
             host: Config.smtpHost,
@@ -14,7 +14,7 @@ export class SmtpMailService {
         });
     }
 
-    async sendEmail(subject, text, recipient, replyTo) {
+    async sendEmail(subject: string, text: string, recipient: string, replyTo: string) {
         const message = {
             from: Config.fromAddress,
             to: recipient,

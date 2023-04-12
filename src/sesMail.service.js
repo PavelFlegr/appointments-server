@@ -1,5 +1,5 @@
 import {SESClient, SendEmailCommand} from "@aws-sdk/client-ses";
-import {Config} from "./config.mjs";
+import {Config} from "./config.ts";
 
 export class SesMailService {
     client

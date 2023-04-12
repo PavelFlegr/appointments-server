@@ -1,16 +1,16 @@
 import Fastify from 'fastify'
-import {MongoService} from "./mongo.service.mjs";
-import {Config} from "./config.mjs";
-import {AppointmentService} from "./appointment.service.mjs";
-import {SegmentService} from "./segment.service.mjs";
+import {Config} from "./config.ts";
+import {AppointmentService} from "./appointment.service.ts";
+import {SegmentService} from "./segment.service.ts";
 import addFormats from "ajv-formats"
-import {ReservationService} from "./reservation.service.mjs";
+import {ReservationService} from "./reservation.service.ts";
 import dayjs from "dayjs";
 import * as dotenv from 'dotenv'
-import {UserService} from "./user.service.mjs";
+import {UserService} from "./user.service.ts";
 import fastifyJwt from "@fastify/jwt";
 import timezone from "dayjs/plugin/timezone.js"
-import {SmtpMailService} from "./smtpMail.service.mjs";
+import {SmtpMailService} from "./smtpMail.service.ts";
+import {MongoClient} from "mongodb";
 
 dayjs.extend(timezone)
 
@@ -34,13 +34,13 @@ fastify.decorate("authenticate", async function(request, reply) {
         reply.send(err)
     }
 })
-
-const dbService = new MongoService(Config.mongoUri, Config.dbName)
-const appointmentService = new AppointmentService(dbService)
-const segmentService = new SegmentService(dbService)
-const reservationService = new ReservationService(dbService, segmentService)
+const mongoClient = new MongoClient(Config.mongoUri)
+const db = mongoClient.db(Config.dbName)
+const appointmentService = new AppointmentService(db)
+const segmentService = new SegmentService(db)
+const reservationService = new ReservationService(db, segmentService)
 const emailService = new SmtpMailService()
-const userService = new UserService(dbService)
+const userService = new UserService(db)
 
 fastify.delete('/reservation/:reservationId', async(request) => {
     const {reservationId} = request.params
@@ -129,7 +129,7 @@ fastify.post('/reservation', {
             required: ['segmentId', 'firstName', 'lastName', 'email', 'timezone'],
             type: 'object',
             properties: {
-                segmentId: { type: 'string', format: 'uuid'},
+                segmentId: { type: 'string' },
                 firstName: { type: 'string', minLength: 1},
                 lastName: { type: 'string', minLength: 1},
                 email: {type: 'string', format: 'email', minLength: 1},
@@ -140,8 +140,9 @@ fastify.post('/reservation', {
 })
 
 fastify.get('/segment/:appointmentId', async(request) => {
-    const segments = await segmentService.findAvailableSegments(request.params.appointmentId)
-    const appointment = await appointmentService.getAppointment(request.params.appointmentId)
+    const { appointmentId } = request.params
+    const segments = await segmentService.findAvailableSegments(appointmentId)
+    const appointment = await appointmentService.getAppointment(appointmentId)
 
     return {segments, appointment: appointment.name}
 })
@@ -155,6 +156,8 @@ fastify.get('/appointment', {
             appointment.reserved = await reservationService.findReservations(appointment.id).then(reservations => reservations.length)
             const segmentCount = await segmentService.findSegments(appointment.id).then(segments => segments.length)
             appointment.capacity = segmentCount * appointment.volume
+
+            return appointment
         })
 
         await Promise.all(wait)
@@ -172,6 +175,13 @@ fastify.get('/appointment/:appointmentId/reservations', {
         }
 
         return reservationService.findReservations(appointmentId)
+    }})
+
+fastify.get('/appointment/:appointmentId', {
+    onRequest: [fastify.authenticate],
+    async handler(request) {
+        const test = await appointmentService.getAppointment(request.params.appointmentId, request.user)
+        return test
     }})
 
 fastify.delete('/appointment/:appointmentId', {
@@ -220,6 +230,46 @@ fastify.post('/appointment', {
         }
     }
 })
+
+fastify.put('/appointment', {
+    onRequest: [fastify.authenticate],
+    async handler (request) {
+        const appointment = request.body
+        await appointmentService.saveAppointment(appointment, request.user)
+        return appointment
+    },
+    schema: {
+        body: {
+            type: 'object',
+            required: ['id', 'name', 'volume', 'length', 'start', 'end', 'breaks', 'exclude'],
+            properties: {
+                id: { type: 'string', minLength: 1 },
+                name: { type: 'string', minLength: 1},
+                volume: {type: 'number', multipleOf: 1},
+                length: {type: 'string', format: 'duration', minLength: 1},
+                start: {type: 'string', format: 'iso-date-time', minLength: 1},
+                end: {type: 'string', format: 'iso-date-time', minLength: 1},
+                instructions: {type: 'string', default: ''},
+                breaks: {
+                    type: 'array',
+                    items: {
+                        required: ['start', 'end'],
+                        type: 'object',
+                        properties: {
+                            start:  {type: 'string', format: 'iso-time', minLength: 1},
+                            end:  {type: 'string', format: 'iso-time', minLength: 1},
+                        }
+                    }
+                },
+                exclude: {
+                    type: 'array',
+                    items: { type: 'number', minimum: 1, maximum: 7 , multipleOf: 1}
+                }
+            }
+        }
+    }
+})
+
 
 const start = async () => {
     try {

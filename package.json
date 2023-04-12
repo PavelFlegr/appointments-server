@@ -2,26 +2,30 @@
   "name": "apts",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "run": "nodemon src/main.mjs"
+    "run": "nodemon --exec node --loader ts-node/esm src/main.js"
   },
+  "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-ses": "^3.188.0",
     "@fastify/jwt": "^6.3.2",
+    "@types/nodemailer": "^6.4.7",
     "ajv-formats": "^3.0.0-rc.0",
     "bcrypt": "^5.1.0",
     "dayjs": "^1.11.5",
     "dotenv": "^16.0.3",
     "fastify": "^4.8.1",
     "mongodb": "^4.10.0",
-    "nodemailer": "^6.8.0",
-    "uuid": "^9.0.0"
+    "nanoid": "^4.0.2",
+    "nodemailer": "^6.8.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.20"
+    "@types/node": "^18.15.11",
+    "nodemon": "^2.0.20",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.0.3"
   }
 }
