@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "run": "nodemon --exec node --loader ts-node/esm src/main.js"
+    "run": "nodemon --exec node --loader ts-node/esm src/main.js",
+    "build": "tsc"
   },
   "type": "module",
   "keywords": [],

@@ -1,15 +1,15 @@
 import Fastify from 'fastify'
-import {Config} from "./config.ts";
-import {AppointmentService} from "./appointment.service.ts";
-import {SegmentService} from "./segment.service.ts";
+import {Config} from "./config.js";
+import {AppointmentService} from "./appointment.service.js";
+import {SegmentService} from "./segment.service.js";
 import addFormats from "ajv-formats"
-import {ReservationService} from "./reservation.service.ts";
+import {ReservationService} from "./reservation.service.js";
 import dayjs from "dayjs";
 import * as dotenv from 'dotenv'
-import {UserService} from "./user.service.ts";
+import {UserService} from "./user.service.js";
 import fastifyJwt from "@fastify/jwt";
 import timezone from "dayjs/plugin/timezone.js"
-import {SmtpMailService} from "./smtpMail.service.ts";
+import {SmtpMailService} from "./smtpMail.service.js";
 import {MongoClient} from "mongodb";
 
 dayjs.extend(timezone)

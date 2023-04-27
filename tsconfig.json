@@ -7,5 +7,7 @@
     "target": "ES2022",
     "esModuleInterop": true,
     "allowJs": true,
+    "outDir": "dist",
+    "sourceMap": true
   }
 }
