@@ -36,6 +36,6 @@ export class ReservationService {
     }
 
     async findReservations(appointmentId: string) {
-        return this.reservations.find({appointmentId}).project({cancelUrl: "$id", firstName: 1, lastName: 1, email: 1, start: 1, end: 1}).toArray()
+        return this.reservations.find({appointmentId}).project({cancelUrl: "$id", firstName: 1, lastName: 1, email: 1, start: 1, end: 1, appointmentId: 1, segmentId: 1}).toArray()
     }
 }

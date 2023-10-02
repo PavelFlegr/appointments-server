@@ -231,6 +231,26 @@ fastify.post('/appointment', {
     }
 })
 
+fastify.delete('/appointment/:appointmentId/reservation', {
+    onRequest: [fastify.authenticate],
+    async handler(request) {
+        const {appointmentId} = request.params
+        const {email} = request.query
+        const reservations = await reservationService.findReservations(appointmentId)
+        const found = reservations.filter(r => r.email === email)
+
+        if (found.length > 0) {
+            for (let reservation of found) {
+                const segment = await segmentService.getSegment(reservation.segmentId)
+                await reservationService.deleteReservation(reservation.cancelUrl)
+                await segmentService.updateVolume(segment.id, segment.volume + 1)
+            }
+        }
+
+        return found.length
+    }
+})
+
 fastify.put('/appointment', {
     onRequest: [fastify.authenticate],
     async handler (request) {
