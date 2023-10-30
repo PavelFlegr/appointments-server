@@ -42,6 +42,6 @@ export class ReservationService {
         if (!includeCancelled) {
             filter.cancelled = false;
         }
-        return this.reservations.find(filter).project({cancelUrl: "$id", firstName: 1, lastName: 1, email: 1, start: 1, end: 1, appointmentId: 1, segmentId: 1, cancelled: 1}).toArray()
+        return this.reservations.find(filter).project({cancelUrl: "$id", firstName: 1, lastName: 1, email: 1, start: 1, end: 1, appointmentId: 1, segmentId: 1, cancelled: {$ifNull: ["$cancelled", false]}}).toArray()
     }
 }
