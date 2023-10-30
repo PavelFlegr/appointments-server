@@ -143,8 +143,12 @@ fastify.get('/segment/:appointmentId', async(request) => {
     const { appointmentId } = request.params
     const segments = await segmentService.findAvailableSegments(appointmentId)
     const appointment = await appointmentService.getAppointment(appointmentId)
-
-    return {segments, appointment: appointment.name}
+    const total = segments.length * appointment.volume
+    let free = 0;
+    for(const segment of segments) {
+        free += segment.volume
+    }
+    return {segments: segments.filter(s => s.volume > 0), appointment: appointment.name, total, free}
 })
 
 fastify.get('/appointment', {
@@ -153,7 +157,7 @@ fastify.get('/appointment', {
         const appointments = await appointmentService.findAppointments(request.user)
 
         const wait = appointments.map(async appointment => {
-            appointment.reserved = await reservationService.findReservations(appointment.id).then(reservations => reservations.length)
+            appointment.reserved = await reservationService.findReservations(appointment.id, false).then(reservations => reservations.length)
             const segmentCount = await segmentService.findSegments(appointment.id).then(segments => segments.length)
             appointment.capacity = segmentCount * appointment.volume
 

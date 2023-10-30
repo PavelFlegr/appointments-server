@@ -32,10 +32,16 @@ export class ReservationService {
     }
 
     async deleteReservation(id: string) {
-        return this.reservations.deleteOne({id})
+        return this.reservations.updateOne({id}, {$set: {cancelled: true}})
     }
 
-    async findReservations(appointmentId: string) {
-        return this.reservations.find({appointmentId}).project({cancelUrl: "$id", firstName: 1, lastName: 1, email: 1, start: 1, end: 1, appointmentId: 1, segmentId: 1}).toArray()
+    async findReservations(appointmentId: string, includeCancelled = true) {
+        const filter: Record<string, any> = {
+            appointmentId,
+        }
+        if (!includeCancelled) {
+            filter.cancelled = false;
+        }
+        return this.reservations.find(filter).project({cancelUrl: "$id", firstName: 1, lastName: 1, email: 1, start: 1, end: 1, appointmentId: 1, segmentId: 1, cancelled: 1}).toArray()
     }
 }
